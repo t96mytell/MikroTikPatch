@@ -40,18 +40,18 @@ env:
   CUSTOM_LICENSE_PUBLIC_KEY: ${{ secrets.CUSTOM_LICENSE_PUBLIC_KEY }}
   CUSTOM_NPK_SIGN_PRIVATE_KEY: ${{ secrets.CUSTOM_NPK_SIGN_PRIVATE_KEY }}
   CUSTOM_NPK_SIGN_PUBLIC_KEY: ${{ secrets.CUSTOM_NPK_SIGN_PUBLIC_KEY }}
-  CUSTOM_CLOUD_PUBLIC_KEY: ${{ secrets.CUSTOM_CLOUD_PUBLIC_KEY }}
+#  CUSTOM_CLOUD_PUBLIC_KEY: ${{ secrets.CUSTOM_CLOUD_PUBLIC_KEY }}
   MIKRO_LICENSE_PUBLIC_KEY: ${{ secrets.MIKRO_LICENSE_PUBLIC_KEY }}
   MIKRO_NPK_SIGN_PUBLIC_KEY: ${{ secrets.MIKRO_NPK_SIGN_PUBLIC_KEY }}
-  MIKRO_CLOUD_PUBLIC_KEY: ${{ secrets.MIKRO_CLOUD_PUBLIC_KEY }}
+#  MIKRO_CLOUD_PUBLIC_KEY: ${{ secrets.MIKRO_CLOUD_PUBLIC_KEY }}
   MIKRO_LICENCE_URL: ${{ secrets.MIKRO_LICENCE_URL }}
   CUSTOM_LICENCE_URL: ${{ secrets.CUSTOM_LICENCE_URL }}
   MIKRO_UPGRADE_URL: ${{ secrets.MIKRO_UPGRADE_URL }}
   CUSTOM_UPGRADE_URL: ${{ secrets.CUSTOM_UPGRADE_URL }}
   MIKRO_RENEW_URL: ${{ secrets.MIKRO_RENEW_URL }}
   CUSTOM_RENEW_URL: ${{ secrets.CUSTOM_RENEW_URL }}
-  MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
-  CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
+#  MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
+#  CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
 
 jobs:
   Set_BuildTime:
@@ -465,24 +465,24 @@ jobs:
         sudo rm chr-$LATEST_VERSION$ARCH.img
 
 
-    - name: Upload Files
-      if: steps.get_latest.outputs.has_new_version == 'true'
-      run: |
-        if [ "${{ steps.get_latest.outputs.has_patched_npk }}" == "false" ]; then
-          OUTDIR="$LATEST_VERSION-UNDONE"
-        else
-          OUTDIR="$LATEST_VERSION"
-        fi
-        sudo mkdir -p ./publish/$OUTDIR
-        sudo cp CHANGELOG ./publish/$OUTDIR/
-        sudo cp ./all_packages/*.npk ./publish/$OUTDIR/
-        sudo chown -R root:root ./publish/
-        sudo apt-get install -y lftp ssh sshpass > /dev/null 2>&1
-        sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
-        set sftp:auto-confirm yes
-        mirror --reverse --verbose --only-newer ./publish ${{ secrets.SSH_DIRECTORY }}
-        bye
-        EOF
+#    - name: Upload Files
+#      if: steps.get_latest.outputs.has_new_version == 'true'
+#      run: |
+#        if [ "${{ steps.get_latest.outputs.has_patched_npk }}" == "false" ]; then
+#          OUTDIR="$LATEST_VERSION-UNDONE"
+#        else
+#          OUTDIR="$LATEST_VERSION"
+#        fi
+#        sudo mkdir -p ./publish/$OUTDIR
+#        sudo cp CHANGELOG ./publish/$OUTDIR/
+#        sudo cp ./all_packages/*.npk ./publish/$OUTDIR/
+#        sudo chown -R root:root ./publish/
+#        sudo apt-get install -y lftp ssh sshpass > /dev/null 2>&1
+#        sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
+#        set sftp:auto-confirm yes
+#        mirror --reverse --verbose --only-newer ./publish ${{ secrets.SSH_DIRECTORY }}
+#        bye
+#        EOF
         
     - name: Clear Cloudflare cache
       if: steps.get_latest.outputs.has_new_version == 'true'
@@ -525,33 +525,33 @@ jobs:
           routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}.npk
           all_packages-*-${{ env.LATEST_VERSION }}.zip
           
-  Create_CSV:
-    needs: Patch_RouterOS
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          pattern: latest_version_*
-          merge-multiple: true
-      - name: Create Packages CSV File
-        run: |
-          sudo apt-get install ssh sshpass
-          for file in artifacts/latest_version_*.json; do
-            if [ -f "$file" ]; then
-              arch=$(jq -r '.arch' "$file")
-              channel=$(jq -r '.channel' "$file")
-              latest_version=$(jq -r '.latest_version' "$file")
-              build_time=$(jq -r '.build_time' "$file")
-              has_patched_npk=$(jq -r '.patched' "$file")
-              echo "Arch: $arch, Channel: $channel, Latest Version: $latest_version,Build Time: $build_time,Has Patched NPK: $has_patched_npk"
-              if [ "$has_patched_npk" == "false" ]; then
-                OUTDIR="$latest_version-UNDONE"
-              else
-                OUTDIR="$latest_version"
-              fi
-              sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} "echo $latest_version $build_time | tee /rw/disk/${{ secrets.SSH_DIRECTORY }}/NEWESTa7.$channel; /rw/disk/${{ secrets.SSH_DIRECTORY }}/packages.sh /rw/disk/${{ secrets.SSH_DIRECTORY }}/$OUTDIR"
-            fi
-          done
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} "chown -R 32768:32768 /rw/disk/${{ secrets.SSH_DIRECTORY }}/"
+#  Create_CSV:
+#    needs: Patch_RouterOS
+#    runs-on: ubuntu-22.04
+#    steps:
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: artifacts
+#          pattern: latest_version_*
+#          merge-multiple: true
+#      - name: Create Packages CSV File
+#        run: |
+#          sudo apt-get install ssh sshpass
+#          for file in artifacts/latest_version_*.json; do
+#            if [ -f "$file" ]; then
+#              arch=$(jq -r '.arch' "$file")
+#              channel=$(jq -r '.channel' "$file")
+#              latest_version=$(jq -r '.latest_version' "$file")
+#              build_time=$(jq -r '.build_time' "$file")
+#              has_patched_npk=$(jq -r '.patched' "$file")
+#              echo "Arch: $arch, Channel: $channel, Latest Version: $latest_version,Build Time: $build_time,Has Patched NPK: $has_patched_npk"
+#              if [ "$has_patched_npk" == "false" ]; then
+#                OUTDIR="$latest_version-UNDONE"
+#              else
+#                OUTDIR="$latest_version"
+#              fi
+#              sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} "echo $latest_version $build_time | tee /rw/disk/${{ secrets.SSH_DIRECTORY }}/NEWESTa7.$channel; /rw/disk/${{ secrets.SSH_DIRECTORY }}/packages.sh /rw/disk/${{ secrets.SSH_DIRECTORY }}/$OUTDIR"
+#            fi
+#          done
+#          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} "chown -R 32768:32768 /rw/disk/${{ secrets.SSH_DIRECTORY }}/"
